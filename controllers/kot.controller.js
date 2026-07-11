@@ -25,8 +25,8 @@ exports.sendKOT = async (req, res) => {
 
       const kotNumber = generateKOTNumber();
       const [kotResult] = await conn.query(
-        'INSERT INTO kots (cafe_id, order_id, table_id, captain_id, kot_number, priority, notes) VALUES (?,?,?,?,?,?,?)',
-        [req.user.cafe_id, order_id, orders[0].table_id, req.user.id, kotNumber, priority || 'normal', notes || null]
+        'INSERT INTO kots (order_id, table_id, captain_id, kot_number, priority, notes) VALUES (?,?,?,?,?,?)',
+        [order_id, orders[0].table_id, req.user.id, kotNumber, priority || 'normal', notes || null]
       );
       const kotId = kotResult.insertId;
 
@@ -53,8 +53,8 @@ exports.sendKOT = async (req, res) => {
       conn.release();
     }
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.message || 'Server error' });
+    console.error('sendKOT error:', err);
+    res.status(500).json({ success: false, message: err.sqlMessage || err.message || 'Server error' });
   }
 };
 
@@ -67,10 +67,11 @@ exports.getKOTs = async (req, res) => {
              u.name AS captain_name,
              TIMESTAMPDIFF(MINUTE, k.created_at, NOW()) AS elapsed_minutes
       FROM kots k
+      JOIN orders o ON k.order_id = o.id
       LEFT JOIN tables t ON t.id = k.table_id
       LEFT JOIN sections s ON s.id = t.section_id
       JOIN users u ON u.id = k.captain_id
-      WHERE k.cafe_id = ?
+      WHERE o.cafe_id = ?
     `;
     const params = [req.user.cafe_id];
     if (status) { sql += ' AND k.status = ?'; params.push(status); }
@@ -90,7 +91,8 @@ exports.getKOTs = async (req, res) => {
 
     res.json({ success: true, kots });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('getKOTs error:', err);
+    res.status(500).json({ success: false, message: err.sqlMessage || err.message || 'Server error' });
   }
 };
 
@@ -100,8 +102,11 @@ exports.getKOT = async (req, res) => {
     const [kots] = await db.query(`
       SELECT k.*, t.table_number, u.name AS captain_name,
              TIMESTAMPDIFF(MINUTE, k.created_at, NOW()) AS elapsed_minutes
-      FROM kots k LEFT JOIN tables t ON t.id = k.table_id JOIN users u ON u.id = k.captain_id
-      WHERE k.id = ? AND k.cafe_id = ?
+      FROM kots k 
+      JOIN orders o ON k.order_id = o.id
+      LEFT JOIN tables t ON t.id = k.table_id 
+      JOIN users u ON u.id = k.captain_id
+      WHERE k.id = ? AND o.cafe_id = ?
     `, [req.params.id, req.user.cafe_id]);
     if (!kots.length) return res.status(404).json({ success: false, message: 'KOT not found' });
 
@@ -111,7 +116,8 @@ exports.getKOT = async (req, res) => {
     );
     res.json({ success: true, kot: kots[0], items });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('getKOT error:', err);
+    res.status(500).json({ success: false, message: err.sqlMessage || err.message || 'Server error' });
   }
 };
 
@@ -121,10 +127,11 @@ exports.updateStatus = async (req, res) => {
     const { status } = req.body;
     const valid = ['pending','preparing','ready','served'];
     if (!valid.includes(status)) return res.status(400).json({ success: false, message: 'Invalid status' });
-    await db.query('UPDATE kots SET status=? WHERE id=? AND cafe_id=?', [status, req.params.id, req.user.cafe_id]);
+    await db.query('UPDATE kots SET status=? WHERE id=? AND order_id IN (SELECT id FROM orders WHERE cafe_id=?)', [status, req.params.id, req.user.cafe_id]);
     res.json({ success: true, message: `KOT marked as ${status}` });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('updateStatus error:', err);
+    res.status(500).json({ success: false, message: err.sqlMessage || err.message || 'Server error' });
   }
 };
 
@@ -134,9 +141,10 @@ exports.updatePriority = async (req, res) => {
     const { priority } = req.body;
     const valid = ['normal','high','urgent'];
     if (!valid.includes(priority)) return res.status(400).json({ success: false, message: 'Invalid priority' });
-    await db.query('UPDATE kots SET priority=? WHERE id=? AND cafe_id=?', [priority, req.params.id, req.user.cafe_id]);
+    await db.query('UPDATE kots SET priority=? WHERE id=? AND order_id IN (SELECT id FROM orders WHERE cafe_id=?)', [priority, req.params.id, req.user.cafe_id]);
     res.json({ success: true, message: `Priority set to ${priority}` });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('updatePriority error:', err);
+    res.status(500).json({ success: false, message: err.sqlMessage || err.message || 'Server error' });
   }
 };
