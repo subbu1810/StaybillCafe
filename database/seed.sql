@@ -2,7 +2,7 @@
 --  StayBill Cafe POS — Seed Data
 --  Run AFTER schema.sql
 -- ═══════════════════════════════════════════════════════════════
-USE cafe_mobile;
+USE staybillcafe;
 
 -- ── Restaurant Settings ─────────────────────────────────────────
 INSERT INTO restaurant_settings (name, address, phone, email, gst_number, gst_percentage, service_charge_pct, currency)
