@@ -60,7 +60,8 @@ exports.createCafe = async (req, res) => {
 
     res.status(201).json({ success: true, cafe_id: cafeId, message: 'Cafe created' });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Error in createCafe:', err);
+    res.status(500).json({ success: false, message: err.sqlMessage || err.message || 'Server error' });
   }
 };
 
