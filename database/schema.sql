@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS cafes (
   email      VARCHAR(100) UNIQUE,
   gst_number VARCHAR(25) UNIQUE,
   plan       ENUM('trial','basic','pro') NOT NULL DEFAULT 'trial',
+  subscription_end_date DATE,
   is_active  TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
