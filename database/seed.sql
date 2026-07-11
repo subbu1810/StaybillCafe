@@ -13,9 +13,12 @@ INSERT INTO restaurant_settings (cafe_id, name, address, phone, email, gst_numbe
 VALUES (1, 'StayBill Cafe', '123 MG Road, Bengaluru, Karnataka 560001', '+91-9876543210',
         'info@staybillcafe.com', '29AABCS1429B1Z1', 5.00, 2.00, 'INR');
 
--- ── Users (password: admin123 / captain123 / cashier123 / kitchen123) ──
--- All passwords hashed with bcrypt rounds=10
+-- ──────────────────────────────────────────────────────────────
+-- 2. USERS
+-- ──────────────────────────────────────────────────────────────
+-- password for all users is: password123
 INSERT INTO users (cafe_id, name, username, password_hash, role, phone) VALUES
+(NULL, 'Super Admin', 'dickandrew@gmail.com', '$2a$10$xEfH15LLXLcmJ5R/dxI65.C/.IFMKWMHuaAVXxw5JNi3Pz1gZOZIS', 'superadmin', '+91-0000000000'),
 (1, 'Rajan Kumar',   'admin',   '$2a$10$xEfH15LLXLcmJ5R/dxI65.C/.IFMKWMHuaAVXxw5JNi3Pz1gZOZIS', 'admin',   '+91-9000000001'),
 (1, 'Arjun Sharma',  'captain1','$2a$10$xEfH15LLXLcmJ5R/dxI65.C/.IFMKWMHuaAVXxw5JNi3Pz1gZOZIS', 'captain', '+91-9000000002'),
 (1, 'Priya Nair',    'captain2','$2a$10$xEfH15LLXLcmJ5R/dxI65.C/.IFMKWMHuaAVXxw5JNi3Pz1gZOZIS', 'captain', '+91-9000000003'),
