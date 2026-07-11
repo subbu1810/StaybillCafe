@@ -3,10 +3,10 @@
 --  Database: cafe_mobile
 -- ═══════════════════════════════════════════════════════════════
 
-CREATE DATABASE IF NOT EXISTS cafe_mobile
+CREATE DATABASE IF NOT EXISTS staybillcafe
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-USE cafe_mobile;
+USE staybillcafe;
 
 -- ──────────────────────────────────────────────────────────────
 -- 1. CAFES (Multi-tenant root table)
