@@ -67,10 +67,16 @@ exports.createCafe = async (req, res) => {
 // ── PUT /api/superadmin/cafes/:id ────────────────────────────────
 exports.updateCafe = async (req, res) => {
   try {
-    const { name, address, phone, email, gst_number, plan, is_active } = req.body;
+    const { name, address, phone, email, gst_number, plan, subscription_end_date, is_active } = req.body;
+    let formattedDate = subscription_end_date;
+    if (formattedDate) {
+      // Ensure date is in YYYY-MM-DD format for MySQL
+      formattedDate = new Date(formattedDate).toISOString().split('T')[0];
+    }
+
     await db.query(
-      'UPDATE cafes SET name=?,address=?,phone=?,email=?,gst_number=?,plan=?,is_active=? WHERE id=?',
-      [name, address, phone, email, gst_number, plan, is_active, req.params.id]
+      'UPDATE cafes SET name=?,address=?,phone=?,email=?,gst_number=?,plan=?,subscription_end_date=?,is_active=? WHERE id=?',
+      [name, address, phone, email, gst_number, plan, formattedDate, is_active, req.params.id]
     );
     res.json({ success: true, message: 'Cafe updated' });
   } catch (err) {
