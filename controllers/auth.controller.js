@@ -31,7 +31,7 @@ exports.register = async (req, res) => {
     });
   } catch (err) {
     console.error('Register error:', err);
-    res.status(500).json({ success: false, message: 'Server error during registration' });
+    res.status(500).json({ success: false, message: err.sqlMessage || err.message || 'Server error during registration' });
   }
 };
 
@@ -70,8 +70,8 @@ exports.registerHotel = async (req, res) => {
 
     // Create default restaurant settings
     await db.query(
-      'INSERT INTO restaurant_settings (cafe_id, gst_percentage, service_charge_pct, currency, timezone, receipt_footer) VALUES (?, ?, ?, ?, ?, ?)',
-      [cafeId, 5.00, 0.00, 'INR', 'Asia/Kolkata', 'Thank you for your visit!']
+      'INSERT INTO restaurant_settings (cafe_id, name, gst_percentage, service_charge_pct, currency, timezone, receipt_footer) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [cafeId, hotelName, 5.00, 0.00, 'INR', 'Asia/Kolkata', 'Thank you for your visit!']
     );
 
     // Create Admin User
@@ -89,7 +89,7 @@ exports.registerHotel = async (req, res) => {
 
   } catch (err) {
     console.error('Register Hotel error:', err);
-    res.status(500).json({ success: false, message: 'Server error during hotel registration' });
+    res.status(500).json({ success: false, message: err.sqlMessage || err.message || 'Server error during hotel registration' });
   }
 };
 
