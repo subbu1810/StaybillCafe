@@ -17,28 +17,30 @@ exports.getCategories = async (req, res) => {
 
 exports.addCategory = async (req, res) => {
   try {
-    const { name, icon, color, sort_order, gst_percentage } = req.body;
+    const { name, icon, color, sort_order } = req.body;
     if (!name) return res.status(400).json({ success: false, message: 'name required' });
     const [r] = await db.query(
-      'INSERT INTO categories (cafe_id, name, icon, color, sort_order, gst_percentage) VALUES (?,?,?,?,?,?)',
-      [req.user.cafe_id, name, icon, color, sort_order || 0, gst_percentage || 0]
+      'INSERT INTO categories (cafe_id, name, icon, color, sort_order) VALUES (?,?,?,?,?)',
+      [req.user.cafe_id, name, icon, color, sort_order || 0]
     );
     res.status(201).json({ success: true, id: r.insertId });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('addCategory error:', err);
+    res.status(500).json({ success: false, message: err.sqlMessage || err.message || 'Server error' });
   }
 };
 
 exports.updateCategory = async (req, res) => {
   try {
-    const { name, icon, color, sort_order, is_active, gst_percentage } = req.body;
+    const { name, icon, color, sort_order, is_active } = req.body;
     await db.query(
-      'UPDATE categories SET name=?, icon=?, color=?, sort_order=?, is_active=?, gst_percentage=? WHERE id=? AND cafe_id=?',
-      [name, icon, color, sort_order, is_active, gst_percentage || 0, req.params.id, req.user.cafe_id]
+      'UPDATE categories SET name=?, icon=?, color=?, sort_order=?, is_active=? WHERE id=? AND cafe_id=?',
+      [name, icon, color, sort_order, is_active, req.params.id, req.user.cafe_id]
     );
     res.json({ success: true, message: 'Category updated' });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('updateCategory error:', err);
+    res.status(500).json({ success: false, message: err.sqlMessage || err.message || 'Server error' });
   }
 };
 
