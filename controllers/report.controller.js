@@ -24,8 +24,8 @@ exports.getSummary = async (req, res) => {
     );
 
     const [collection] = await db.query(`
-      SELECT COALESCE(SUM(amount), 0) AS total_collection
-      FROM payments WHERE cafe_id = ? AND DATE(paid_at) = ? AND status = 'success'
+      SELECT COALESCE(SUM(p.amount), 0) AS total_collection
+      FROM payments p JOIN bills b ON p.bill_id = b.id WHERE b.cafe_id = ? AND DATE(p.paid_at) = ? AND p.status = 'success'
     `, [req.user.cafe_id, targetDate]);
 
     const [customers] = await db.query(
@@ -111,10 +111,10 @@ exports.getPaymentBreakup = async (req, res) => {
     const { date } = req.query;
     const d = date || new Date().toISOString().split('T')[0];
     const [rows] = await db.query(`
-      SELECT method, COUNT(*) AS count, SUM(amount) AS total
-      FROM payments
-      WHERE cafe_id = ? AND DATE(paid_at) = ? AND status = 'success'
-      GROUP BY method
+      SELECT p.method, COUNT(*) AS count, SUM(p.amount) AS total
+      FROM payments p JOIN bills b ON p.bill_id = b.id
+      WHERE b.cafe_id = ? AND DATE(p.paid_at) = ? AND p.status = 'success'
+      GROUP BY p.method
     `, [req.user.cafe_id, d]);
     res.json({ success: true, date: d, breakup: rows });
   } catch (err) {
