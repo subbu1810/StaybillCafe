@@ -65,7 +65,7 @@ app.use('/api/settings',   require('./routes/settings.routes'));
 app.use('/api/subscription', require('./routes/subscription.routes'));
 
 // ── Serve React Web App ───────────────────────────────────────────────────────
-const webBuildPath = path.join(__dirname, '../web/dist');
+const webBuildPath = path.join(__dirname, 'public');
 app.use(express.static(webBuildPath));
 
 // ── 404 for API routes & SPA fallback ───────────────────────────────────────
