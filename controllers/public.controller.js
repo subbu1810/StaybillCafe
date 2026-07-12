@@ -6,7 +6,7 @@ exports.getPublicMenu = async (req, res) => {
 
     // Fetch cafe details
     const [cafeDetails] = await db.query(
-      'SELECT c.id, c.name, c.email, c.phone, c.status, rs.address, rs.logo_url, rs.currency, rs.is_gst_enabled FROM cafes c LEFT JOIN restaurant_settings rs ON c.id = rs.cafe_id WHERE c.id = ? AND c.status = "active"',
+      'SELECT c.id, c.name, c.email, c.phone, c.is_active, rs.address, rs.logo_url, rs.currency, rs.is_gst_enabled FROM cafes c LEFT JOIN restaurant_settings rs ON c.id = rs.cafe_id WHERE c.id = ? AND c.is_active = 1',
       [cafe_id]
     );
 
