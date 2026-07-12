@@ -11,7 +11,8 @@ exports.getSummary = async (req, res) => {
       SELECT
         COALESCE(SUM(grand_total), 0) AS total_sales,
         COUNT(*) AS total_bills,
-        COALESCE(AVG(grand_total), 0) AS avg_bill
+        COALESCE(AVG(grand_total), 0) AS avg_bill,
+        COALESCE(SUM(discount_amount), 0) AS total_discount
       FROM bills WHERE cafe_id = ? AND DATE(created_at) = ? AND status = 'paid'
     `, [req.user.cafe_id, targetDate]);
 
@@ -37,8 +38,9 @@ exports.getSummary = async (req, res) => {
       success: true,
       date: targetDate,
       summary: {
-        total_sales:      sales[0].total_sales,
-        total_bills:      sales[0].total_bills,
+        totalSales:       sales[0].total_sales,
+        totalBills:       sales[0].total_bills,
+        totalDiscount:    sales[0].total_discount,
         avg_bill:         parseFloat(sales[0].avg_bill).toFixed(2),
         total_kots:       kots[0].total_kots,
         running_tables:   tables[0].running_tables,
