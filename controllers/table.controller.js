@@ -49,7 +49,7 @@ exports.getTable = async (req, res) => {
       SELECT o.id, o.status, o.guest_count, o.created_at,
              u.name AS captain_name
       FROM orders o
-      JOIN users u ON u.id = o.captain_id
+      LEFT JOIN users u ON u.id = o.captain_id
       WHERE o.table_id = ? AND o.status NOT IN ('paid','cancelled')
       ORDER BY o.created_at DESC LIMIT 1
     `, [req.params.id]);

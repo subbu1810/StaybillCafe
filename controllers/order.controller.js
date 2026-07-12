@@ -70,7 +70,7 @@ exports.getRunningOrders = async (req, res) => {
       FROM orders o
       LEFT JOIN tables t ON t.id = o.table_id
       LEFT JOIN sections s ON s.id = t.section_id
-      JOIN users u ON u.id = o.captain_id
+      LEFT JOIN users u ON u.id = o.captain_id
       WHERE o.cafe_id = ? AND o.status NOT IN ('paid','cancelled')
       ORDER BY o.created_at DESC
     `, [req.user.cafe_id]);
@@ -89,7 +89,7 @@ exports.getOrder = async (req, res) => {
       FROM orders o
       LEFT JOIN tables t ON t.id = o.table_id
       LEFT JOIN sections s ON s.id = t.section_id
-      JOIN users u ON u.id = o.captain_id
+      LEFT JOIN users u ON u.id = o.captain_id
       LEFT JOIN customers c ON c.id = o.customer_id
       WHERE o.id = ?
     `, [req.params.id]);

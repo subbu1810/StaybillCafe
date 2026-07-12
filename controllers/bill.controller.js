@@ -142,7 +142,7 @@ exports.getBills = async (req, res) => {
       LEFT JOIN tables t ON t.id = b.table_id
       JOIN users u ON u.id = b.cashier_id
       JOIN orders o ON o.id = b.order_id
-      JOIN users cap ON cap.id = o.captain_id
+      LEFT JOIN users cap ON cap.id = o.captain_id
       WHERE b.cafe_id = ?
     `;
     const params = [req.user.cafe_id];
@@ -171,7 +171,7 @@ exports.getBill = async (req, res) => {
       LEFT JOIN sections s ON s.id = t.section_id
       JOIN users u ON u.id = b.cashier_id
       JOIN orders o ON o.id = b.order_id
-      JOIN users cap ON cap.id = o.captain_id
+      LEFT JOIN users cap ON cap.id = o.captain_id
       LEFT JOIN restaurant_settings rs ON rs.cafe_id = b.cafe_id
       WHERE b.id = ? AND b.cafe_id = ?
     `, [req.params.id, req.user.cafe_id]);

@@ -70,7 +70,7 @@ exports.getKOTs = async (req, res) => {
       JOIN orders o ON k.order_id = o.id
       LEFT JOIN tables t ON t.id = k.table_id
       LEFT JOIN sections s ON s.id = t.section_id
-      JOIN users u ON u.id = k.captain_id
+      LEFT JOIN users u ON u.id = k.captain_id
       WHERE o.cafe_id = ?
     `;
     const params = [req.user.cafe_id];
@@ -105,7 +105,7 @@ exports.getKOT = async (req, res) => {
       FROM kots k 
       JOIN orders o ON k.order_id = o.id
       LEFT JOIN tables t ON t.id = k.table_id 
-      JOIN users u ON u.id = k.captain_id
+      LEFT JOIN users u ON u.id = k.captain_id
       WHERE k.id = ? AND o.cafe_id = ?
     `, [req.params.id, req.user.cafe_id]);
     if (!kots.length) return res.status(404).json({ success: false, message: 'KOT not found' });
