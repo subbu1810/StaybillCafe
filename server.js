@@ -64,9 +64,18 @@ app.use('/api/reports',    require('./routes/report.routes'));
 app.use('/api/settings',   require('./routes/settings.routes'));
 app.use('/api/subscription', require('./routes/subscription.routes'));
 
-// ── 404 ─────────────────────────────────────────────────────────────────────
+// ── Serve React Web App ───────────────────────────────────────────────────────
+const webBuildPath = path.join(__dirname, '../web/dist');
+app.use(express.static(webBuildPath));
+
+// ── 404 for API routes & SPA fallback ───────────────────────────────────────
 app.use((req, res) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
+  // If the request is for an API route, return JSON 404
+  if (req.originalUrl.startsWith('/api/')) {
+    return res.status(404).json({ success: false, message: 'Route not found' });
+  }
+  // Otherwise, fallback to React app (useful for digital menu and admin dashboard routing)
+  res.sendFile(path.join(webBuildPath, 'index.html'));
 });
 
 // ── Global Error Handler ────────────────────────────────────────────────────
