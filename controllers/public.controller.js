@@ -3,6 +3,7 @@ const db = require('../config/db');
 exports.getPublicMenu = async (req, res) => {
   try {
     const { cafe_id } = req.params;
+    const { table } = req.query;
 
     // Fetch cafe details
     const [cafeDetails] = await db.query(
@@ -28,8 +29,17 @@ exports.getPublicMenu = async (req, res) => {
       [cafe_id]
     );
 
+    let tableData = null;
+    if (table) {
+      const [tables] = await db.query('SELECT id, table_number FROM tables WHERE id = ? AND cafe_id = ?', [table, cafe_id]);
+      if (tables.length) {
+        tableData = tables[0];
+      }
+    }
+
     res.json({
       success: true,
+      table: tableData,
       cafe: {
         id: cafe.id,
         name: cafe.name,
