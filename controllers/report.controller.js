@@ -16,7 +16,7 @@ exports.getSummary = async (req, res) => {
     `, [req.user.cafe_id, targetDate]);
 
     const [kots] = await db.query(
-      "SELECT COUNT(*) AS total_kots FROM kots WHERE cafe_id = ? AND DATE(created_at) = ?", [req.user.cafe_id, targetDate]
+      "SELECT COUNT(*) AS total_kots FROM kots k JOIN orders o ON k.order_id = o.id WHERE o.cafe_id = ? AND DATE(k.created_at) = ?", [req.user.cafe_id, targetDate]
     );
 
     const [tables] = await db.query(
@@ -47,7 +47,8 @@ exports.getSummary = async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('getSummary error:', err);
+    res.status(500).json({ success: false, message: err.sqlMessage || err.message || 'Server error' });
   }
 };
 
