@@ -10,7 +10,7 @@ exports.generateBill = async (req, res) => {
 
     // Get order items
     const [items] = await db.query(
-      `SELECT oi.*, m.name AS item_name, c.gst_percentage AS cat_gst 
+      `SELECT oi.*, m.name AS item_name
        FROM order_items oi 
        JOIN menu_items m ON m.id = oi.menu_item_id 
        JOIN categories c ON c.id = m.category_id 
@@ -178,7 +178,7 @@ exports.getBill = async (req, res) => {
     if (!bills.length) return res.status(404).json({ success: false, message: 'Bill not found' });
 
     const [items] = await db.query(`
-      SELECT oi.*, m.name AS item_name, m.is_veg, cat.name AS category, cat.gst_percentage AS cat_gst
+      SELECT oi.*, m.name AS item_name, m.is_veg, cat.name AS category
       FROM order_items oi
       JOIN menu_items m ON m.id = oi.menu_item_id
       JOIN categories cat ON cat.id = m.category_id
