@@ -7,7 +7,8 @@ exports.getTables = async (req, res) => {
     let sql = `
       SELECT t.*, s.name AS section_name,
         (SELECT COUNT(*) FROM orders o WHERE o.table_id = t.id AND o.status NOT IN ('paid','cancelled')) AS active_orders,
-        (SELECT o.id FROM orders o WHERE o.table_id = t.id AND o.status NOT IN ('paid','cancelled') ORDER BY o.created_at DESC LIMIT 1) AS active_order_id
+        (SELECT o.id FROM orders o WHERE o.table_id = t.id AND o.status NOT IN ('paid','cancelled') ORDER BY o.created_at DESC LIMIT 1) AS active_order_id,
+        (SELECT o.created_at FROM orders o WHERE o.table_id = t.id AND o.status NOT IN ('paid','cancelled') ORDER BY o.created_at DESC LIMIT 1) AS order_created_at
       FROM tables t
       LEFT JOIN sections s ON s.id = t.section_id
       WHERE t.cafe_id = ?
