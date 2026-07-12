@@ -64,6 +64,8 @@ CREATE TABLE IF NOT EXISTS restaurant_settings (
   captain_allow_checkout TINYINT(1) NOT NULL DEFAULT 0,
   captain_allow_print    TINYINT(1) NOT NULL DEFAULT 0,
   captain_allow_payment  TINYINT(1) NOT NULL DEFAULT 0,
+  customer_ordering_enabled TINYINT(1) NOT NULL DEFAULT 0,
+  direct_to_kitchen_enabled TINYINT(1) NOT NULL DEFAULT 0,
   updated_at          TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (cafe_id) REFERENCES cafes(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -149,7 +151,7 @@ CREATE TABLE IF NOT EXISTS orders (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   cafe_id     INT     NOT NULL,
   table_id    INT     NULL,
-  captain_id  INT     NOT NULL,
+  captain_id  INT     NULL,
   customer_id INT,
   order_type  ENUM('dine_in','takeaway') NOT NULL DEFAULT 'dine_in',
   status      ENUM('open','kot_sent','billing','paid','cancelled') NOT NULL DEFAULT 'open',
@@ -184,7 +186,7 @@ CREATE TABLE IF NOT EXISTS kots (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   order_id    INT  NOT NULL,
   table_id    INT  NULL,
-  captain_id  INT  NOT NULL,
+  captain_id  INT  NULL,
   kot_number  VARCHAR(30) NOT NULL UNIQUE,
   priority    ENUM('normal','high','urgent') NOT NULL DEFAULT 'normal',
   status      ENUM('pending','preparing','ready','served') NOT NULL DEFAULT 'pending',
