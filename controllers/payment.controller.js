@@ -18,14 +18,14 @@ exports.recordPayment = async (req, res) => {
     if (method === 'split' && req.body.split_payments && Array.isArray(req.body.split_payments)) {
         for (const sp of req.body.split_payments) {
           await conn.query(
-            'INSERT INTO payments (cafe_id, bill_id, method, amount, transaction_ref, status) VALUES (?,?,?,?,?,?)',
-            [req.user.cafe_id, bill_id, sp.method, sp.amount, transaction_ref || null, 'success']
+            'INSERT INTO payments (bill_id, method, amount, transaction_ref, status) VALUES (?,?,?,?,?)',
+            [bill_id, sp.method, sp.amount, transaction_ref || null, 'success']
           );
         }
       } else {
         await conn.query(
-          'INSERT INTO payments (cafe_id, bill_id, method, amount, transaction_ref, status) VALUES (?,?,?,?,?,?)',
-          [req.user.cafe_id, bill_id, method, amount, transaction_ref || null, 'success']
+          'INSERT INTO payments (bill_id, method, amount, transaction_ref, status) VALUES (?,?,?,?,?)',
+          [bill_id, method, amount, transaction_ref || null, 'success']
         );
       }
 
