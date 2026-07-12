@@ -52,9 +52,24 @@ exports.generateBill = async (req, res) => {
 
     const grandTotal = subtotal + gstAmount + svcCharge - discountAmt;
 
-    const [existing] = await db.query('SELECT id FROM bills WHERE order_id = ? AND status != ? AND cafe_id = ?', [order_id, 'cancelled', req.user.cafe_id]);
+    const [existing] = await db.query('SELECT id, status FROM bills WHERE order_id = ? AND status != ? AND cafe_id = ?', [order_id, 'cancelled', req.user.cafe_id]);
     if (existing.length) {
-      return res.status(400).json({ success: false, message: 'Bill already generated for this order', billId: existing[0].id });
+      if (existing[0].status === 'paid') {
+         return res.status(400).json({ success: false, message: 'Bill already paid' });
+      }
+      
+      // Update existing bill with new totals
+      await db.query(
+        `UPDATE bills SET subtotal=?, gst_percentage=?, gst_amount=?, discount_type=?, discount_value=?, discount_amount=?, service_charge_pct=?, service_charge=?, grand_total=? WHERE id=?`,
+        [subtotal, gstPctToStore, gstAmount, dtype, dval, discountAmt, svcPct, svcCharge, grandTotal, existing[0].id]
+      );
+      
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Bill updated', 
+        billId: existing[0].id,
+        summary: { subtotal, gstAmount, svcCharge, discountAmt, grandTotal } 
+      });
     }
 
     let billNumber = '';
