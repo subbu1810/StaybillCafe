@@ -63,8 +63,15 @@ exports.placeOrder = async (req, res) => {
     }
 
     // 1. Get settings
-    const [settings] = await connection.query('SELECT direct_to_kitchen_enabled FROM restaurant_settings WHERE cafe_id = ?', [cafe_id]);
-    const isDirectToKitchen = settings[0]?.direct_to_kitchen_enabled === 1;
+    const [settings] = await connection.query('SELECT customer_ordering_enabled, direct_to_kitchen_enabled FROM restaurant_settings WHERE cafe_id = ?', [cafe_id]);
+    
+    if (!settings.length || settings[0].customer_ordering_enabled !== 1) {
+      await connection.rollback();
+      connection.release();
+      return res.status(403).json({ success: false, message: 'Customer ordering is currently disabled by the restaurant.' });
+    }
+
+    const isDirectToKitchen = settings[0].direct_to_kitchen_enabled === 1;
 
     // 2. Create the Order
     const [orderRes] = await connection.query(
