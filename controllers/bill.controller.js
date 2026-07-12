@@ -77,9 +77,8 @@ exports.generateBill = async (req, res) => {
       const [invCount] = await db.query('SELECT COUNT(*) as count FROM bills WHERE cafe_id = ? AND bill_number LIKE "POSINV%"', [req.user.cafe_id]);
       billNumber = `POSINV${String(invCount[0].count + 1).padStart(2, '0')}`;
     } else {
-      const d = new Date();
-      const date = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-      billNumber = `BILL-${date}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const [billCount] = await db.query('SELECT COUNT(*) as count FROM bills WHERE cafe_id = ? AND bill_number NOT LIKE "POSINV%"', [req.user.cafe_id]);
+      billNumber = String(billCount[0].count + 1).padStart(2, '0');
     }
 
     const [result] = await db.query(
