@@ -64,6 +64,8 @@ CREATE TABLE IF NOT EXISTS restaurant_settings (
   captain_allow_checkout TINYINT(1) NOT NULL DEFAULT 0,
   captain_allow_print    TINYINT(1) NOT NULL DEFAULT 0,
   captain_allow_payment  TINYINT(1) NOT NULL DEFAULT 0,
+  captain_allow_cancel_item TINYINT(1) NOT NULL DEFAULT 0,
+  print_cancel_kot       TINYINT(1) NOT NULL DEFAULT 1,
   customer_ordering_enabled TINYINT(1) NOT NULL DEFAULT 0,
   direct_to_kitchen_enabled TINYINT(1) NOT NULL DEFAULT 0,
   updated_at          TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

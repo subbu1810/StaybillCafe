@@ -112,14 +112,14 @@ exports.login = async (req, res) => {
     console.log('cleanPhone:', cleanPhone);
 
     const [rows] = await db.query(
-      'SELECT users.*, cafes.name AS cafe_name, cafes.plan, cafes.subscription_end_date, rs.captain_allow_checkout, rs.captain_allow_print, rs.captain_allow_payment FROM users LEFT JOIN cafes ON users.cafe_id = cafes.id LEFT JOIN restaurant_settings rs ON users.cafe_id = rs.cafe_id WHERE users.phone = ? AND users.is_active = 1', [cleanPhone]
+      'SELECT users.*, cafes.name AS cafe_name, cafes.plan, cafes.subscription_end_date, rs.captain_allow_checkout, rs.captain_allow_print, rs.captain_allow_payment, rs.captain_allow_cancel_item, rs.print_cancel_kot FROM users LEFT JOIN cafes ON users.cafe_id = cafes.id LEFT JOIN restaurant_settings rs ON users.cafe_id = rs.cafe_id WHERE users.phone = ? AND users.is_active = 1', [cleanPhone]
     );
     console.log('rows found:', rows.length);
     
     if (!rows.length) {
       // Fallback check if they are passing username that is not a phone
       const [rowsUsername] = await db.query(
-        'SELECT users.*, cafes.name AS cafe_name, cafes.plan, cafes.subscription_end_date, rs.captain_allow_checkout, rs.captain_allow_print, rs.captain_allow_payment FROM users LEFT JOIN cafes ON users.cafe_id = cafes.id LEFT JOIN restaurant_settings rs ON users.cafe_id = rs.cafe_id WHERE users.username = ? AND users.is_active = 1', [cleanPhone]
+        'SELECT users.*, cafes.name AS cafe_name, cafes.plan, cafes.subscription_end_date, rs.captain_allow_checkout, rs.captain_allow_print, rs.captain_allow_payment, rs.captain_allow_cancel_item, rs.print_cancel_kot FROM users LEFT JOIN cafes ON users.cafe_id = cafes.id LEFT JOIN restaurant_settings rs ON users.cafe_id = rs.cafe_id WHERE users.username = ? AND users.is_active = 1', [cleanPhone]
       );
       if(rowsUsername.length) {
          console.log('Found user by username instead of phone');
@@ -161,7 +161,9 @@ exports.login = async (req, res) => {
         subscription_end_date: user.subscription_end_date,
         captain_allow_checkout: !!user.captain_allow_checkout,
         captain_allow_print: !!user.captain_allow_print,
-        captain_allow_payment: !!user.captain_allow_payment
+        captain_allow_payment: !!user.captain_allow_payment,
+        captain_allow_cancel_item: !!user.captain_allow_cancel_item,
+        print_cancel_kot: user.print_cancel_kot !== undefined ? !!user.print_cancel_kot : true
       },
     });
   } catch (err) {
@@ -174,7 +176,7 @@ exports.login = async (req, res) => {
 exports.me = async (req, res) => {
   try {
     const [rows] = await db.query(
-      'SELECT users.id, users.cafe_id, users.name, users.username, users.role, users.phone, users.created_at, cafes.name AS cafe_name, cafes.plan, cafes.subscription_end_date, rs.captain_allow_checkout, rs.captain_allow_print, rs.captain_allow_payment FROM users LEFT JOIN cafes ON users.cafe_id = cafes.id LEFT JOIN restaurant_settings rs ON users.cafe_id = rs.cafe_id WHERE users.id = ?', [req.user.id]
+      'SELECT users.id, users.cafe_id, users.name, users.username, users.role, users.phone, users.created_at, cafes.name AS cafe_name, cafes.plan, cafes.subscription_end_date, rs.captain_allow_checkout, rs.captain_allow_print, rs.captain_allow_payment, rs.captain_allow_cancel_item, rs.print_cancel_kot FROM users LEFT JOIN cafes ON users.cafe_id = cafes.id LEFT JOIN restaurant_settings rs ON users.cafe_id = rs.cafe_id WHERE users.id = ?', [req.user.id]
     );
     if (!rows.length) return res.status(404).json({ success: false, message: 'User not found' });
     
@@ -182,6 +184,8 @@ exports.me = async (req, res) => {
     user.captain_allow_checkout = !!user.captain_allow_checkout;
     user.captain_allow_print = !!user.captain_allow_print;
     user.captain_allow_payment = !!user.captain_allow_payment;
+    user.captain_allow_cancel_item = !!user.captain_allow_cancel_item;
+    user.print_cancel_kot = user.print_cancel_kot !== undefined ? !!user.print_cancel_kot : true;
 
     res.json({ success: true, user });
   } catch (err) {

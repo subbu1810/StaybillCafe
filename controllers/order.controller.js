@@ -171,3 +171,70 @@ exports.updateStatus = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+// ── POST /api/orders/:id/cancel-item ────────────────────────
+exports.cancelItem = async (req, res) => {
+  try {
+    const { order_item_id, quantity_to_cancel } = req.body;
+    const orderId = req.params.id;
+
+    // Check permissions
+    if (req.user.role === 'captain') {
+      const [settingsRows] = await db.query('SELECT captain_allow_cancel_item FROM restaurant_settings WHERE cafe_id = ?', [req.user.cafe_id]);
+      const allowCancel = settingsRows.length > 0 ? settingsRows[0].captain_allow_cancel_item : 0;
+      if (!allowCancel) {
+        return res.status(403).json({ success: false, message: 'Captains are not allowed to cancel items.' });
+      }
+    }
+
+    const [itemRows] = await db.query('SELECT * FROM order_items WHERE id=? AND order_id=?', [order_item_id, orderId]);
+    if (!itemRows.length) return res.status(404).json({ success: false, message: 'Item not found in order' });
+    const item = itemRows[0];
+
+    // Deduct or delete
+    if (quantity_to_cancel >= item.quantity) {
+      await db.query('DELETE FROM order_items WHERE id=?', [order_item_id]);
+    } else {
+      await db.query('UPDATE order_items SET quantity = quantity - ? WHERE id=?', [quantity_to_cancel, order_item_id]);
+    }
+
+    // Get order info for Cancel KOT
+    const [orderRows] = await db.query(
+      `SELECT o.*, t.table_number, u.name as waiter_name, c.name as cafe_name
+       FROM orders o 
+       LEFT JOIN tables t ON o.table_id = t.id
+       LEFT JOIN users u ON o.user_id = u.id
+       LEFT JOIN cafes c ON o.cafe_id = c.id
+       WHERE o.id = ?`, [orderId]
+    );
+
+    const [menuItemRows] = await db.query('SELECT name FROM menu_items WHERE id=?', [item.menu_item_id]);
+    const menuItemName = menuItemRows.length ? menuItemRows[0].name : 'Unknown Item';
+
+    const cancelKOT = {
+      is_cancel: true,
+      kot_number: 'CANCEL-' + Date.now().toString().slice(-4),
+      order_id: orderId,
+      table_number: orderRows[0].table_number || 'Takeaway',
+      waiter_name: orderRows[0].waiter_name,
+      cafe_name: orderRows[0].cafe_name,
+      created_at: new Date(),
+      items: [{
+        name: menuItemName,
+        quantity: quantity_to_cancel,
+        notes: item.special_instructions
+      }]
+    };
+
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('order_updated', { order_id: orderId });
+      io.emit('cancel_kot', cancelKOT);
+    }
+
+    res.json({ success: true, message: 'Item cancelled', cancelKOT });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};

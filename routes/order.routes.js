@@ -10,6 +10,7 @@ router.get('/:id',                    auth, ctrl.getOrder);
 router.post('/:id/items',             auth, roles('admin', 'captain', 'cashier'), ctrl.addItems);
 router.put('/:id/items/:itemId',      auth, roles('admin', 'captain', 'cashier'), ctrl.updateItem);
 router.delete('/:id/items/:itemId',   auth, roles('admin', 'captain', 'cashier'), ctrl.removeItem);
+router.post('/:id/cancel-item',       auth, roles('admin', 'captain', 'cashier'), ctrl.cancelItem);
 router.put('/:id/status',             auth, ctrl.updateStatus);
 
 module.exports = router;
