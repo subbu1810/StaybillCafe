@@ -207,7 +207,7 @@ exports.cancelItem = async (req, res) => {
       `SELECT o.*, t.table_number, u.name as waiter_name, c.name as cafe_name
        FROM orders o 
        LEFT JOIN tables t ON o.table_id = t.id
-       LEFT JOIN users u ON o.user_id = u.id
+       LEFT JOIN users u ON o.captain_id = u.id
        LEFT JOIN cafes c ON o.cafe_id = c.id
        WHERE o.id = ?`, [orderId]
     );
