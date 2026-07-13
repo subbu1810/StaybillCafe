@@ -178,10 +178,16 @@ exports.cancelItem = async (req, res) => {
     const { order_item_id, quantity_to_cancel } = req.body;
     const orderId = req.params.id;
 
-    // Check permissions
+    // Check permissions & fetch live settings
+    const [settingsRows] = await db.query(
+      'SELECT captain_allow_cancel_item, print_cancel_kot FROM restaurant_settings WHERE cafe_id = ?',
+      [req.user.cafe_id]
+    );
+    const settings = settingsRows.length > 0 ? settingsRows[0] : {};
+    const printCancelKot = settings.print_cancel_kot !== undefined ? !!settings.print_cancel_kot : true;
+
     if (req.user.role === 'captain') {
-      const [settingsRows] = await db.query('SELECT captain_allow_cancel_item FROM restaurant_settings WHERE cafe_id = ?', [req.user.cafe_id]);
-      const allowCancel = settingsRows.length > 0 ? settingsRows[0].captain_allow_cancel_item : 0;
+      const allowCancel = settings.captain_allow_cancel_item || 0;
       if (!allowCancel) {
         return res.status(403).json({ success: false, message: 'Captains are not allowed to cancel items.' });
       }
@@ -245,7 +251,7 @@ exports.cancelItem = async (req, res) => {
       if (orderEmpty) io.emit('order_cancelled', { order_id: orderId });
     }
 
-    res.json({ success: true, message: 'Item cancelled', cancelKOT, order_cancelled: orderEmpty });
+    res.json({ success: true, message: 'Item cancelled', cancelKOT, order_cancelled: orderEmpty, print_cancel_kot: printCancelKot });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'Server error' });
