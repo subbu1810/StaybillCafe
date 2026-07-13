@@ -198,6 +198,10 @@ exports.cancelItem = async (req, res) => {
       await db.query('UPDATE order_items SET quantity = quantity - ? WHERE id=?', [quantity_to_cancel, order_item_id]);
     }
 
+    // Check if any items remain in the order
+    const [remainingItems] = await db.query('SELECT COUNT(*) as cnt FROM order_items WHERE order_id=?', [orderId]);
+    const orderEmpty = remainingItems[0].cnt === 0;
+
     // Get order info for Cancel KOT
     const [orderRows] = await db.query(
       `SELECT o.*, t.table_number, u.name as waiter_name, c.name as cafe_name
@@ -208,6 +212,14 @@ exports.cancelItem = async (req, res) => {
        WHERE o.id = ?`, [orderId]
     );
 
+    // If all items are removed → cancel the order and free the table
+    if (orderEmpty && orderRows.length) {
+      await db.query("UPDATE orders SET status='cancelled' WHERE id=?", [orderId]);
+      if (orderRows[0].table_id) {
+        await db.query("UPDATE tables SET status='available' WHERE id=?", [orderRows[0].table_id]);
+      }
+    }
+
     const [menuItemRows] = await db.query('SELECT name FROM menu_items WHERE id=?', [item.menu_item_id]);
     const menuItemName = menuItemRows.length ? menuItemRows[0].name : 'Unknown Item';
 
@@ -215,9 +227,9 @@ exports.cancelItem = async (req, res) => {
       is_cancel: true,
       kot_number: 'CANCEL-' + Date.now().toString().slice(-4),
       order_id: orderId,
-      table_number: orderRows[0].table_number || 'Takeaway',
-      waiter_name: orderRows[0].waiter_name,
-      cafe_name: orderRows[0].cafe_name,
+      table_number: orderRows[0]?.table_number || 'Takeaway',
+      waiter_name: orderRows[0]?.waiter_name,
+      cafe_name: orderRows[0]?.cafe_name,
       created_at: new Date(),
       items: [{
         name: menuItemName,
@@ -230,11 +242,13 @@ exports.cancelItem = async (req, res) => {
     if (io) {
       io.emit('order_updated', { order_id: orderId });
       io.emit('cancel_kot', cancelKOT);
+      if (orderEmpty) io.emit('order_cancelled', { order_id: orderId });
     }
 
-    res.json({ success: true, message: 'Item cancelled', cancelKOT });
+    res.json({ success: true, message: 'Item cancelled', cancelKOT, order_cancelled: orderEmpty });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
